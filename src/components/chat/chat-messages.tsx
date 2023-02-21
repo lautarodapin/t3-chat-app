@@ -1,38 +1,61 @@
 import clsx from 'clsx'
-import React, {useEffect, useRef} from 'react'
+import React from 'react'
 import {ChatMessage} from 'src/components/chat/chat-message'
+import {Loading} from 'src/components/loading'
 import {api, type RouterOutputs} from 'src/utils/api'
 
-
-
 type Props = {
-    messages: RouterOutputs['chat']['chat']['message']
     chatId: string
 }
+type Message = RouterOutputs['chat']['inifiteMessages']['items'][number]
 
-export const ChatMessages: React.FC<Props> = ({messages, chatId}) => {
-    const utils = api.useContext()
-    const bottomRef = useRef<HTMLDivElement>(null)
+export const ChatMessages: React.FC<Props> = ({chatId}) => {
+    const messageQuery = api.chat.inifiteMessages.useInfiniteQuery({
+        chatId,
+    }, {
+        getPreviousPageParam: d => d.prevCursor,
+        onSuccess: (data) => {
+            const msgs = data.pages.flatMap(page => page.items)
+            mergeMessages(msgs)
+        }
+    })
+    const [messages, setMessages] = React.useState(() => {
+        return messageQuery.data?.pages.flatMap(page => page.items) || []
+    })
+    const mergeMessages = React.useCallback((newMessages?: Message[]) => {
+        setMessages(prev => {
+            const map = new Map<Message['id'], Message>()
+            prev?.forEach(p => map.set(p.id, p))
+            newMessages?.forEach(p => map.set(p.id, p))
+            return Array.from(map).map(([, value]) => value)
+                .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+        })
+    }, [])
+    const {
+        hasPreviousPage,
+        isFetchingPreviousPage,
+        fetchPreviousPage,
+        isInitialLoading,
+    } = messageQuery
     api.chat.onSendMessageToChat.useSubscription({chatId}, {
         onData: async (data) => {
-            utils.chat.chat.setData({chatId}, chat => chat && ({
-                ...chat,
-                message: [...chat.message, data],
-            }))
+            mergeMessages([data])
         },
     })
-    useEffect(() => {
-        bottomRef.current?.scrollIntoView({
-            behavior: 'smooth',
-            block: 'end',
-            inline: 'nearest',
-        })
-    }, [messages.length])
     return <>
-        <div id='top-chat' className='flex-1' />
+        <button id='top-chat' className={clsx(`
+            flex-1 btn
+            ${!hasPreviousPage && 'hidden'}
+            `)}
+            onClick={() => fetchPreviousPage()}
+            disabled={isFetchingPreviousPage || !hasPreviousPage}
+        >
+            {hasPreviousPage && 'Cargar mas'
+                || isFetchingPreviousPage && <Loading />
+            }
+        </button>
         {messages.map(message => (
             <ChatMessage message={message} key={message.id} />
         ))}
-        <div id='bottom-chat' ref={bottomRef} />
     </>
 }

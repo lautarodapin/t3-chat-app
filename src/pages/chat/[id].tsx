@@ -50,7 +50,7 @@ export default function Page() {
 
     return (
         <ChatPage loading={isLoading}>
-            <ChatContainer chat={chat} />
+            <ChatContainer chatId={chat.id} />
         </ChatPage>
     )
 }

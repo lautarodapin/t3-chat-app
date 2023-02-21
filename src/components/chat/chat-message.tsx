@@ -7,7 +7,7 @@ import {getRelativeTimeString} from 'src/utils'
 import {RouterOutputs} from 'src/utils/api'
 
 type Props = {
-    message: RouterOutputs['chat']['chat']['message'][number]
+    message: RouterOutputs['chat']['inifiteMessages']['items'][number]
 }
 export const ChatMessage: React.FC<Props> = ({message}) => {
     return <>

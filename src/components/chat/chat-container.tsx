@@ -1,20 +1,30 @@
-import {type Message} from '@prisma/client'
-import {inferProcedureOutput} from '@trpc/server'
+import {type Chat} from '@prisma/client'
 import clsx from 'clsx'
-import React, {useState} from 'react'
+import React from 'react'
 import {ChatInput} from 'src/components/chat/chat-input'
-import {ChatIsTyping} from 'src/components/chat/chat-is-typing'
-import {ChatMessage} from 'src/components/chat/chat-message'
 import {ChatMessages} from 'src/components/chat/chat-messages'
-import {api, RouterOutputs} from '../../utils/api'
 
 
 type Props = {
-    chat: RouterOutputs['chat']['chat']
+    chatId: Chat['id']
 }
 
-export const ChatContainer: React.FC<React.PropsWithChildren<Props>> = ({chat}) => {
-    const chatId = chat.id
+export const ChatContainer: React.FC<React.PropsWithChildren<Props>> = ({chatId}) => {
+    const bottomRef = React.useRef<HTMLDivElement>(null)
+    const scrollToBottom = React.useCallback(() => {
+        if (bottomRef.current == null) return
+        console.log('scrolling bottom')
+        bottomRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'end',
+            inline: 'nearest',
+
+        })
+    }, [bottomRef])
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    React.useEffect(() => {scrollToBottom()}, [])
+
     return (
         <div
             className={clsx(`
@@ -31,15 +41,16 @@ export const ChatContainer: React.FC<React.PropsWithChildren<Props>> = ({chat}) 
                     overflow-y-auto
                 `)}
             >
-                <ChatMessages messages={chat.message} chatId={chatId} />
+                <ChatMessages chatId={chatId} />
+                <div id='bottom-chat' ref={bottomRef} />
+
             </div>
-            {/* <ChatIsTyping chat={chat} /> */}
             <div
                 className={clsx(`
                 max-h-[4rem]
             `)}
             >
-                <ChatInput chat={chat} />
+                <ChatInput chatId={chatId} onMessageCreated={scrollToBottom} />
             </div>
         </div>
     )

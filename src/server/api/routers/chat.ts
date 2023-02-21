@@ -82,19 +82,53 @@ export const chatRouter = createTRPCRouter({
             return chats.map(chat => ({...chat, lastMessage: chat.message[0]}))
         }),
     chat: protectedProcedure
-        .input(z.object({chatId: z.string()}))
+        .input(z.object({
+            chatId: z.string(),
+        }))
         .query(async ({ctx, input}) => {
             const chat = await ctx.prisma.chat.findFirst({
                 where: {
                     id: input.chatId
                 },
-                include: {users: true, message: {include: {createdBy: true}}},
+                include: {
+                    users: true,
+                },
             })
             if (chat === null) throw new TRPCError({
                 code: 'NOT_FOUND',
                 message: 'Not found'
             })
             return chat
+        }),
+    inifiteMessages: protectedProcedure
+        .input(z.object({
+            chatId: z.string(),
+            limit: z.number().min(1).max(10).optional().transform(v => v === undefined ? 10 : v),
+            cursor: z.date().nullish(),
+        }))
+        .query(async ({input, ctx}) => {
+            const {cursor} = input
+            const items = await ctx.prisma.message.findMany({
+                take: input.limit + 1,
+                where: {
+                    chatId: input.chatId,
+                },
+                orderBy: {
+                    createdAt: 'desc',
+                },
+                cursor: cursor ? {createdAt: cursor} : undefined,
+                include: {
+                    createdBy: true,
+                }
+            })
+            let prevCursor: typeof cursor | undefined = undefined
+            if (items.length && items.length > input.limit) {
+                const nextItem = items.pop()
+                if (nextItem) prevCursor = nextItem.createdAt
+            }
+            return {
+                items, prevCursor
+            }
         }),
     createChat: protectedProcedure
         .input(z.object({
