@@ -11,6 +11,5 @@ export const Layout: FC<PropsWithChildren> = ({children}) => {
     }
     return <>
         {children}
-        <button onClick={() => void signOut()}>Logout</button>
     </>
 }

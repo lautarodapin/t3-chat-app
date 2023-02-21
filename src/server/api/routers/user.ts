@@ -18,8 +18,23 @@ export const userRouter = createTRPCRouter({
                 where: {
                     id: {not: ctx.session.user.id},
                 },
-                include: {chats: {where: {users: {some: {id: ctx.session.user.id}}}}},
+                include: {
+                    chats: {
+                        where: {users: {some: {id: ctx.session.user.id}}},
+                        include: {
+                            message: {
+                                orderBy: {createdAt: 'desc'},
+                                take: 1,
+                            },
+                        }
+                    },
+                },
             })
-            return users
+            return users.map(user => ({
+                ...user,
+                chats: user.chats.map(chat => ({
+                    ...chat,
+                }))
+            }))
         }),
 })

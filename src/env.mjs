@@ -8,6 +8,7 @@ import {z} from "zod";
  */
 const server = z.object({
     DATABASE_URL: z.string().url(),
+    NEXT_PUBLIC_WS_PORT: z.string().default('3011'),
     NODE_ENV: z.enum(["development", "test", "production"]),
     NEXTAUTH_SECRET:
         process.env.NODE_ENV === "production"
@@ -42,6 +43,7 @@ const client = z.object({
  * @type {Record<keyof z.infer<typeof server> | keyof z.infer<typeof client>, string | undefined>}
  */
 const processEnv = {
+    NEXT_PUBLIC_WS_PORT: process.env.NEXT_PUBLIC_WS_PORT,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
@@ -55,7 +57,6 @@ const processEnv = {
 
 // Don't touch the part below
 // --------------------------
-
 const merged = server.merge(client);
 /** @type z.infer<merged>
  *  @ts-ignore - can't type this properly in jsdoc */
