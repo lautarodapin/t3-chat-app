@@ -43,10 +43,7 @@ export const ChatMessages: React.FC<Props> = ({chatId}) => {
         },
     })
     return <>
-        <button id='top-chat' className={clsx(`
-            flex-1 btn
-            ${!hasPreviousPage && 'hidden'}
-            `)}
+        <button id='top-chat' className={clsx(`btn ${!hasPreviousPage && 'hidden'}`)}
             onClick={() => fetchPreviousPage()}
             disabled={isFetchingPreviousPage || !hasPreviousPage}
         >
@@ -54,6 +51,7 @@ export const ChatMessages: React.FC<Props> = ({chatId}) => {
                 || isFetchingPreviousPage && <Loading />
             }
         </button>
+        <div className="flex-1"></div>
         {messages.map(message => (
             <ChatMessage message={message} key={message.id} />
         ))}
