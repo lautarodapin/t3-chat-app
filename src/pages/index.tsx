@@ -1,12 +1,11 @@
 import {type NextPage} from "next"
+import {ChatPage} from 'src/components/layout/chat-page'
 
 import {Sidebar} from '../components/sidebar'
 
 const Home: NextPage = () => {
     return (
-        <div className='flex flex-col'>
-            <Sidebar />
-        </div>
+        <ChatPage />
     )
 }
 
