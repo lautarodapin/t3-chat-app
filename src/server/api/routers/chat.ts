@@ -66,7 +66,7 @@ const ee = new MyEventEmitter()
 // process.on('SIGTERM', () => clearInterval(typingInterval))
 
 export const chatRouter = createTRPCRouter({
-    userChats: protectedProcedure
+    myChats: protectedProcedure
         .query(async ({ctx}) => {
             const chats = await ctx.prisma.chat.findMany({
                 where: {users: {some: {id: ctx.session.user.id}}},
@@ -79,7 +79,7 @@ export const chatRouter = createTRPCRouter({
 
                 },
             })
-            return chats.map(chat => ({...chat, lastMessage: chat.message[0]}))
+            return chats
         }),
     chat: protectedProcedure
         .input(z.object({

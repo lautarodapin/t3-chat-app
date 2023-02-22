@@ -1,14 +1,19 @@
+import {useSession} from 'next-auth/react'
 import {type FC} from 'react'
 import {SidebarItem} from 'src/components/sidebar/sidebar-item'
 import {api} from '../../utils/api'
 
 export const Sidebar: FC = () => {
-    const {data} = api.user.users.useQuery()
+    const session = useSession()
+    const {data} = api.chat.myChats.useQuery()
+
     return (
-        <div>
-            {data?.map(user => {
-                return <SidebarItem key={user.id} user={user} />
+        <>
+            {data?.map(chat => {
+                const user = chat.users.find(user => user.id !== session.data?.user.id)
+                if (!user) return null
+                return <SidebarItem key={`${chat.id}-${user.id}`} chat={chat} user={user} />
             })}
-        </div>
+        </>
     )
 }

@@ -40,7 +40,7 @@ export default function Page() {
         enabled: Boolean(id),
         onError: () => {
             void router.push('/')
-        }
+        },
     })
     if (isLoading) return null
     if (!chat) {
